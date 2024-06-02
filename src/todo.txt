@@ -1,0 +1,27 @@
+Show properties on selection
+
+Undo/redo box
+Action box
+Properties box
+    Resize
+    Close
+    Drag
+    Dock
+
+Undo/redo
+Add
+    Shape
+    Material
+Group
+
+Properties
+    Move
+    Rotate
+    Size
+
+View/export code
+Translate to Babylon.js/PlayCanvas
+
+Generic scene description
+    JSON
+    XML
