@@ -1,4 +1,8 @@
 Show properties on selection
+Select item
+    Controls/edit boxes to show properties
+        3D, colour, sliders
+
 
 Undo/redo box
 Action box

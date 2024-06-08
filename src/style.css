@@ -6,6 +6,7 @@
 html,
 body {
     overflow: hidden;
+    height: 100%;
 }
 
 .webgl {
@@ -14,6 +15,85 @@ body {
     left: 0;
     outline: none;
 }
+
+.inner {
+    height:100%;
+    width: auto;
+    background-color: #fff;
+    color: #000;
+    border-radius: 8px;
+}
+
+.drag-handle div{
+    background-color: rgb(207, 238, 34);
+    color: #000;
+    font-size: 12px;
+
+}
+.resize-handle{
+    background-color: rgb(248, 113, 131);
+}
+
+.property_name {
+    font-weight: bold;
+    font-size: 2em;
+
+}
+
+.property_label{
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+table.blueTable {
+    border: 1px solid #000000;
+    background-color: #EEEEEE;
+    width: 100%;
+    text-align: left;
+    border-collapse: collapse;
+    color: #000;
+  }
+  table.blueTable td, table.blueTable th {
+    border: 1px solid #AAAAAA;
+    padding: 3px 2px;
+  }
+  table.blueTable tbody td {
+    font-size: 13px;
+  }
+  table.blueTable tfoot td {
+    font-size: 14px;
+  }
+  table.blueTable tfoot .links {
+    text-align: right;
+  }
+  table.blueTable tfoot .links a{
+    display: inline-block;
+    background: #1C6EA4;
+    color: #030000;
+    padding: 2px 8px;
+    border-radius: 5px;
+  }
+
+.movable-box {
+    position: fixed;
+    z-index: 9;
+    width: 120px;
+    border-radius: 4px;
+    padding: 1px;
+    margin: 1px;
+    background-color: #29e;
+    color: white;
+    font-size: 18px;
+    font-family: sans-serif;
+    border: #fff;
+    border: 2px;
+    border-style: solid;
+  
+    touch-action: none;
+  
+    /* This makes things *much* easier */
+    box-sizing: border-box;
+  }
 
 .resize-drag {
     position: fixed;
@@ -37,11 +117,12 @@ body {
     position: absolute;
     z-index: 9;
     background-color: #f1f1f1;
-    border: 1px solid #d3d3d3;
+    border: 10px solid #d3d3d3;
     text-align: center;
     visibility: visible;
     /* resize: both; */
     overflow: auto;
+    border-radius: 8px;
 }
 
 .draggable_divheader {
