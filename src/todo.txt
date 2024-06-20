@@ -4,6 +4,9 @@ Select item
         3D, colour, sliders
 
 
+Web scraping, API to read docs, select, helpers
+highlight selection
+
 Undo/redo box
 Action box
 Properties box

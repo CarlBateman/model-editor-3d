@@ -1,8 +1,9 @@
-import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+// import * as THREE from "three";
+// import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 // import interact from "interactjs";
 import { drag } from "./interact";
 import { dragElement } from "./dragElement";
+import { scene } from "./scene.js";
 
 let el = document.getElementById("mydiv");
 if (el) {
@@ -12,89 +13,9 @@ if (el) {
 // this function is used later in the resizing and gesture demos
 drag.setup();
 
-/**
- * Sizes
- */
-const sizes = {
-  width: window.innerWidth,
-  height: window.innerHeight,
-};
+scene.setup();
 
-/**
- * Base
- */
-// Canvas
-const canvas = document.querySelector("canvas.webgl");
-if (canvas) {
-  /**
-   * Renderer
-   */
-  const renderer = new THREE.WebGLRenderer({
-    canvas: canvas,
-  });
-  //document.body.appendChild( renderer.domElement );
-  renderer.setSize(sizes.width, sizes.height);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-  // Scene
-  const scene = new THREE.Scene();
-
-  /**
-   * Object
-   */
-  const geometry = new THREE.BoxGeometry(1, 1, 1);
-  const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-  const cube = new THREE.Mesh(geometry, material);
-  scene.add(cube);
-
-  window.addEventListener("resize", () => {
-    // Update sizes
-    sizes.width = window.innerWidth;
-    sizes.height = window.innerHeight;
-
-    // Update camera
-    camera.aspect = sizes.width / sizes.height;
-    camera.updateProjectionMatrix();
-
-    // Update renderer
-    renderer.setSize(sizes.width, sizes.height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  });
-
-  /**
-   * Camera
-   */
-  // Base camera
-  const camera = new THREE.PerspectiveCamera(
-    75,
-    sizes.width / sizes.height,
-    0.1,
-    100
-  );
-  camera.position.z = 3;
-  scene.add(camera);
-
-  // Controls
-  const controls = new OrbitControls(camera, canvas);
-  controls.enableDamping = true;
-
-  /**
-   * Animate
-   */
-  const clock = new THREE.Clock();
-
-  const tick = () => {
-    const elapsedTime = clock.getElapsedTime();
-
-    // Update controls
-    controls.update();
-
-    // Render
-    renderer.render(scene, camera);
-
-    // Call tick again on the next frame
-    window.requestAnimationFrame(tick);
-  };
-
-  tick();
-}
+window.addEventListener("resize", scene.onWindowResize);
+document.addEventListener("pointermove", scene.onPointerMove);
+document.addEventListener("mousedown", scene.pick);
+document.addEventListener("keyup", scene.onkeyup);
