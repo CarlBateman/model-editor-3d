@@ -1,21 +1,20 @@
-// import * as THREE from "three";
-// import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-// import interact from "interactjs";
 import { drag } from "./interact";
 import { dragElement } from "./dragElement";
-import { scene } from "./scene.js";
+import { controller } from "./controller.js";
 
-let el = document.getElementById("mydiv");
-if (el) {
-  dragElement(el);
-}
-
-// this function is used later in the resizing and gesture demos
+let el = document.getElementById("myDiv");
+if (el) dragElement(el);
 drag.setup();
 
-scene.setup();
+controller.setup();
 
-window.addEventListener("resize", scene.onWindowResize);
-document.addEventListener("pointermove", scene.onPointerMove);
-document.addEventListener("mousedown", scene.pick);
-document.addEventListener("keyup", scene.onkeyup);
+window.addEventListener("resize", controller.onWindowResize);
+document.addEventListener("pointermove", controller.onPointerMove);
+document.addEventListener("mousedown", controller.onMouseDown);
+document.addEventListener("mouseup", controller.onMouseUp);
+document.addEventListener("keyup", controller.onKeyUp);
+document.addEventListener("keydown", controller.onKeyDown);
+
+document
+  .getElementById("control_options")
+  .addEventListener("mousedown", (event) => event.stopPropagation());
