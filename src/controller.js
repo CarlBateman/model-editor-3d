@@ -189,7 +189,6 @@ function onMouseUp(event) {
   state = "none";
 
   orbit.enabled = true;
-  orbit.update();
 }
 
 function onMouseDown(event) {
@@ -224,13 +223,7 @@ function onMouseDown(event) {
 
     grabPoint = intersect;
   } else {
-    //control.detach();
-    // currentSelection = null;
-    // outlinePass.selectedObjects = [];
-
     orbit.enabled = true;
-    orbit.update();
-
     state = "orbit";
   }
 }
@@ -249,11 +242,9 @@ function onPointerMove(event) {
     const newGrabPoint = new THREE.Vector3();
     raycaster.setFromCamera(pointer, camera);
     raycaster.ray.intersectPlane(plane, newGrabPoint);
-    //debugShowPoint(currentSelection.position);
 
     let change = grabPoint.clone();
     change.sub(newGrabPoint);
-    //debugShowPoint(grabPoint);
 
     if (ctrlKey) {
       let a = grabPoint.clone();
