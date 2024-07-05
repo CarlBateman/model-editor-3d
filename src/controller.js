@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
@@ -12,7 +13,11 @@ let pointer = new THREE.Vector2();
 let meshes = [];
 let inactiveMeshes = [];
 let currentSelection = null;
+
 let dragging = false;
+
+let state = "none";
+
 let grabPoint = null;
 let plane = new THREE.Plane();
 const raycaster = new THREE.Raycaster();
@@ -21,16 +26,18 @@ let shiftKey = false,
   ctrlKey = false,
   altKey = false;
 let control = null;
+let orbit = null;
 
 function setup() {
   camera = new THREE.PerspectiveCamera(
     70,
     window.innerWidth / window.innerHeight,
     0.01,
-    10
+    100
   );
   camera.position.z = 1.1;
-  //camera.position.x = 10;
+  camera.position.y = 2;
+  camera.lookAt(new THREE.Vector3(0, 0, 0));
   //camera.rotateY(-0.2);
 
   scene = new THREE.Scene();
@@ -42,12 +49,34 @@ function setup() {
   document.body.appendChild(renderer.domElement);
   //window.addEventListener('resize', scene.onWindowResize);
 
-  const geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+  const geometry = new THREE.BoxGeometry(1, 1, 1);
   // const geometry = new THREE.PlaneGeometry(1, 1);
-  const material = new THREE.MeshBasicMaterial({ color: 0x008800 });
+  const material = new THREE.MeshLambertMaterial({ color: 0x008800 });
   const cube = new THREE.Mesh(geometry, material);
   scene.add(cube);
   meshes.push(cube);
+
+  const size = 100;
+  const divisions = 100;
+
+  const gridHelper = new THREE.GridHelper(size, divisions);
+  scene.add(gridHelper);
+
+  const color = 0xffffff;
+  const intensity = 3;
+  const light = new THREE.DirectionalLight(color, intensity);
+  light.position.set(-1, 2, 4);
+  scene.add(light);
+
+  // transform control
+  orbit = new OrbitControls(camera, renderer.domElement);
+
+  // control = new TransformControls(currentCamera, renderer.domElement);
+  // control.addEventListener("change", render);
+
+  // control.addEventListener("dragging-changed", function (event) {
+  //   orbit.enabled = !event.value;
+  // });
 
   // const controls = new OrbitControls(camera, renderer.domElement);
   // controls.enableDamping = true;
@@ -66,19 +95,19 @@ function setup() {
     scene,
     camera
   );
-  //outlinePass.edgeStrength = 10;
+  outlinePass.edgeStrength = 1;
   outlinePass.edgeGlow = 4;
-  //outlinePass.edgeThickness = 4;
+  outlinePass.edgeThickness = 1;
 
   composer.addPass(outlinePass);
 
-  const textureLoader = new THREE.TextureLoader();
-  textureLoader.load("textures/tri_pattern.jpg", function (texture) {
-    outlinePass.patternTexture = texture;
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    outlinePass.usePatternTexture = true;
-  });
+  // const textureLoader = new THREE.TextureLoader();
+  // textureLoader.load("textures/tri_pattern.jpg", function (texture) {
+  //   outlinePass.patternTexture = texture;
+  //   texture.wrapS = THREE.RepeatWrapping;
+  //   texture.wrapT = THREE.RepeatWrapping;
+  //   outlinePass.usePatternTexture = true;
+  // });
 
   const outputPass = new OutputPass();
   composer.addPass(outputPass);
@@ -110,7 +139,7 @@ function addMesh(response) {
 
 function animation() {
   renderer.render(scene, camera);
-  composer.render();
+  if (composer) composer.render();
 }
 
 function onWindowResize() {
@@ -152,7 +181,15 @@ function onKeyUp(e) {
 }
 
 function onMouseUp(event) {
+  if (orbit.enabled && !dragging) {
+    currentSelection = null;
+    outlinePass.selectedObjects = [];
+  }
   dragging = false;
+  state = "none";
+
+  orbit.enabled = true;
+  orbit.update();
 }
 
 function onMouseDown(event) {
@@ -161,12 +198,8 @@ function onMouseDown(event) {
 
   const intersects = raycaster.intersectObjects(meshes);
   if (intersects.length > 0) {
-    // currentSelection = intersects[0].object;
-    // control.attach(intersects[0].object);
-    // scene.add(control);
-    // control.setMode("translate");
-
-    dragging = true;
+    orbit.enabled = false;
+    state = "drag";
 
     currentSelection = intersects[0].object;
     outlinePass.selectedObjects = [currentSelection];
@@ -192,8 +225,13 @@ function onMouseDown(event) {
     grabPoint = intersect;
   } else {
     //control.detach();
-    currentSelection = null;
-    outlinePass.selectedObjects = [];
+    // currentSelection = null;
+    // outlinePass.selectedObjects = [];
+
+    orbit.enabled = true;
+    orbit.update();
+
+    state = "orbit";
   }
 }
 
@@ -201,7 +239,12 @@ function onPointerMove(event) {
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-  if (dragging) {
+  if (state == "orbit") {
+    dragging = true;
+  }
+
+  if (state == "drag") {
+    dragging = true;
     // cast ray to find new grab point
     const newGrabPoint = new THREE.Vector3();
     raycaster.setFromCamera(pointer, camera);
