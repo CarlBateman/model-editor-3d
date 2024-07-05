@@ -15,6 +15,4 @@ document.addEventListener("mouseup", controller.onMouseUp);
 document.addEventListener("keyup", controller.onKeyUp);
 document.addEventListener("keydown", controller.onKeyDown);
 
-document
-  .getElementById("control_options")
-  .addEventListener("mousedown", (event) => event.stopPropagation());
+// document.getElementById("control_options").addEventListener("mousedown", (event) => event.stopPropagation());
