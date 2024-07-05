@@ -8,6 +8,13 @@ import { OutlinePass } from "three/addons/postprocessing/OutlinePass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { FXAAShader } from "three/addons/shaders/FXAAShader.js";
 
+const Interaction = {
+  None: "None",
+  Orbit: "Orbit",
+  Drag: "Drag",
+  Transform: "Transform",
+};
+
 let camera, scene, renderer;
 let pointer = new THREE.Vector2();
 let meshes = [];
@@ -16,7 +23,7 @@ let currentSelection = null;
 
 let dragging = false;
 
-let state = "none";
+let interaction = Interaction.None;
 
 let grabPoint = null;
 let plane = new THREE.Plane();
@@ -84,7 +91,6 @@ function setup() {
   // control = new TransformControls(camera, renderer.domElement);
 
   // postprocessing
-
   composer = new EffectComposer(renderer);
 
   const renderPass = new RenderPass(scene, camera);
@@ -100,14 +106,6 @@ function setup() {
   outlinePass.edgeThickness = 1;
 
   composer.addPass(outlinePass);
-
-  // const textureLoader = new THREE.TextureLoader();
-  // textureLoader.load("textures/tri_pattern.jpg", function (texture) {
-  //   outlinePass.patternTexture = texture;
-  //   texture.wrapS = THREE.RepeatWrapping;
-  //   texture.wrapT = THREE.RepeatWrapping;
-  //   outlinePass.usePatternTexture = true;
-  // });
 
   const outputPass = new OutputPass();
   composer.addPass(outputPass);
@@ -186,7 +184,7 @@ function onMouseUp(event) {
     outlinePass.selectedObjects = [];
   }
   dragging = false;
-  state = "none";
+  interaction = Interaction.None;
 
   orbit.enabled = true;
 }
@@ -198,7 +196,7 @@ function onMouseDown(event) {
   const intersects = raycaster.intersectObjects(meshes);
   if (intersects.length > 0) {
     orbit.enabled = false;
-    state = "drag";
+    interaction = Interaction.Drag;
 
     currentSelection = intersects[0].object;
     outlinePass.selectedObjects = [currentSelection];
@@ -224,7 +222,7 @@ function onMouseDown(event) {
     grabPoint = intersect;
   } else {
     orbit.enabled = true;
-    state = "orbit";
+    interaction = Interaction.Orbit;
   }
 }
 
@@ -232,11 +230,11 @@ function onPointerMove(event) {
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-  if (state == "orbit") {
+  if (interaction == Interaction.Orbit) {
     dragging = true;
   }
 
-  if (state == "drag") {
+  if (interaction == Interaction.Drag) {
     dragging = true;
     // cast ray to find new grab point
     const newGrabPoint = new THREE.Vector3();
