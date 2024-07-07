@@ -14,5 +14,6 @@ document.addEventListener("mousedown", controller.onMouseDown);
 document.addEventListener("mouseup", controller.onMouseUp);
 document.addEventListener("keyup", controller.onKeyUp);
 document.addEventListener("keydown", controller.onKeyDown);
+document.addEventListener("dblclick", controller.onDoubleClick);
 
 // document.getElementById("control_options").addEventListener("mousedown", (event) => event.stopPropagation());

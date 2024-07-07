@@ -22,6 +22,7 @@ let inactiveMeshes = [];
 let currentSelection = null;
 
 let dragging = false;
+let mouseDown = false;
 
 let interaction = Interaction.None;
 
@@ -88,7 +89,9 @@ function setup() {
   // const controls = new OrbitControls(camera, renderer.domElement);
   // controls.enableDamping = true;
 
-  // control = new TransformControls(camera, renderer.domElement);
+  control = new TransformControls(camera, renderer.domElement);
+  control.enabled = false;
+  scene.add(control);
 
   // postprocessing
   composer = new EffectComposer(renderer);
@@ -182,47 +185,73 @@ function onMouseUp(event) {
   if (orbit.enabled && !dragging) {
     currentSelection = null;
     outlinePass.selectedObjects = [];
+
+    control.detach();
+    control.enabled = false;
   }
   dragging = false;
   interaction = Interaction.None;
 
   orbit.enabled = true;
+  mouseDown = false;
 }
 
 function onMouseDown(event) {
   const raycaster = new THREE.Raycaster();
   raycaster.setFromCamera(pointer, camera);
 
+  mouseDown = true;
+
   const intersects = raycaster.intersectObjects(meshes);
   if (intersects.length > 0) {
-    orbit.enabled = false;
-    interaction = Interaction.Drag;
+    if (interaction != Interaction.Transform) {
+      orbit.enabled = false;
+      interaction = Interaction.Drag;
 
-    currentSelection = intersects[0].object;
-    outlinePass.selectedObjects = [currentSelection];
+      currentSelection = intersects[0].object;
+      outlinePass.selectedObjects = [currentSelection];
 
-    // construct plane perpendicular to camera forward passing through current selection
-    let fwd = new THREE.Vector3();
-    camera.getWorldDirection(fwd);
+      // construct plane perpendicular to camera forward passing through current selection
+      let fwd = new THREE.Vector3();
+      camera.getWorldDirection(fwd);
 
-    let d = currentSelection.position.clone();
-    d.negate();
-    d.projectOnVector(fwd);
+      let d = currentSelection.position.clone();
+      d.negate();
+      d.projectOnVector(fwd);
 
-    // get signed distance
-    let sd = d.dot(fwd);
+      // get signed distance
+      let sd = d.dot(fwd);
 
-    // set plane
-    plane.set(fwd, sd);
+      // set plane
+      plane.set(fwd, sd);
 
-    // cast ray to find grab point
-    const intersect = new THREE.Vector3();
-    raycaster.ray.intersectPlane(plane, intersect);
+      // cast ray to find grab point
+      const intersect = new THREE.Vector3();
+      raycaster.ray.intersectPlane(plane, intersect);
 
-    grabPoint = intersect;
+      grabPoint = intersect;
+    }
   } else {
     orbit.enabled = true;
     interaction = Interaction.Orbit;
+  }
+}
+
+function onDoubleClick() {
+  // cycle through transform controls
+  // if(Interaction.Drag)
+  if (currentSelection) {
+    if (control.enabled) {
+      interaction = Interaction.None;
+      control.detach();
+      control.enabled = false;
+    } else {
+      interaction = Interaction.Transform;
+      control.attach(currentSelection);
+      control.setMode("translate");
+      control.enabled = true;
+      orbit.enabled = false;
+    }
   }
 }
 
@@ -230,12 +259,9 @@ function onPointerMove(event) {
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-  if (interaction == Interaction.Orbit) {
-    dragging = true;
-  }
+  dragging = mouseDown;
 
   if (interaction == Interaction.Drag) {
-    dragging = true;
     // cast ray to find new grab point
     const newGrabPoint = new THREE.Vector3();
     raycaster.setFromCamera(pointer, camera);
@@ -277,6 +303,7 @@ let controller = {
   onMouseUp,
   onKeyUp,
   onKeyDown,
+  onDoubleClick,
 };
 
 export { controller };
