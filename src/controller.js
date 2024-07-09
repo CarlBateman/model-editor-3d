@@ -90,6 +90,7 @@ function setup() {
   // controls.enableDamping = true;
 
   control = new TransformControls(camera, renderer.domElement);
+  control.setMode("scale");
   control.enabled = false;
   scene.add(control);
 
@@ -241,14 +242,25 @@ function onDoubleClick() {
   // cycle through transform controls
   // if(Interaction.Drag)
   if (currentSelection) {
-    if (control.enabled) {
+    if (control.enabled && control.mode == "scale") {
       interaction = Interaction.None;
+      control.setMode("scale");
       control.detach();
       control.enabled = false;
     } else {
       interaction = Interaction.Transform;
       control.attach(currentSelection);
-      control.setMode("translate");
+      switch (control.mode) {
+        case "translate":
+          control.setMode("rotate");
+          break;
+        case "rotate":
+          control.setMode("scale");
+          break;
+        case "scale":
+          control.setMode("translate");
+          break;
+      }
       control.enabled = true;
       orbit.enabled = false;
     }
