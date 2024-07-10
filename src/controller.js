@@ -100,7 +100,7 @@ function animation() {
   } else {
     outlinePass.selectedObjects = [];
   }
-  //if (composer) composer.render();
+  if (composer) composer.render();
 }
 
 function onWindowResize() {
