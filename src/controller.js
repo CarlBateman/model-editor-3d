@@ -15,10 +15,9 @@ const Interaction = {
   Transform: "Transform",
 };
 
-let camera, scene, renderer;
+let camera, scene, renderer, composer, effectFXAA, outlinePass;
 let pointer = new THREE.Vector2();
 let meshes = [];
-let inactiveMeshes = [];
 let currentSelection = null;
 
 let dragging = false;
@@ -28,73 +27,59 @@ let interaction = Interaction.None;
 
 let grabPoint = null;
 let plane = new THREE.Plane();
-const raycaster = new THREE.Raycaster();
-let composer, effectFXAA, outlinePass;
+
 let shiftKey = false,
   ctrlKey = false,
   altKey = false;
 let control = null;
 let orbit = null;
 
-function setup() {
+function setupCamera() {
   camera = new THREE.PerspectiveCamera(
     70,
     window.innerWidth / window.innerHeight,
     0.01,
     100
   );
-  camera.position.z = 1.1;
-  camera.position.y = 2;
+  camera.position.set(0, 2, 1.1);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
-  //camera.rotateY(-0.2);
+}
 
+function setupScene() {
   scene = new THREE.Scene();
 
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setClearColor(0x000040, 1);
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setAnimationLoop(animation);
-  document.body.appendChild(renderer.domElement);
-  //window.addEventListener('resize', scene.onWindowResize);
-
   const geometry = new THREE.BoxGeometry(1, 1, 1);
-  // const geometry = new THREE.PlaneGeometry(1, 1);
   const material = new THREE.MeshLambertMaterial({ color: 0x008800 });
   const cube = new THREE.Mesh(geometry, material);
   scene.add(cube);
   meshes.push(cube);
 
-  const size = 100;
-  const divisions = 100;
-
-  const gridHelper = new THREE.GridHelper(size, divisions);
+  const gridHelper = new THREE.GridHelper(100, 100);
   scene.add(gridHelper);
 
-  const color = 0xffffff;
-  const intensity = 3;
-  const light = new THREE.DirectionalLight(color, intensity);
+  const light = new THREE.DirectionalLight(0xffffff, 3);
   light.position.set(-1, 2, 4);
   scene.add(light);
+}
 
-  // transform control
+function setupRenderer() {
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setClearColor(0x000040, 1);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setAnimationLoop(animation);
+  document.body.appendChild(renderer.domElement);
+}
+
+function setupControls() {
   orbit = new OrbitControls(camera, renderer.domElement);
-
-  // control = new TransformControls(currentCamera, renderer.domElement);
-  // control.addEventListener("change", render);
-
-  // control.addEventListener("dragging-changed", function (event) {
-  //   orbit.enabled = !event.value;
-  // });
-
-  // const controls = new OrbitControls(camera, renderer.domElement);
-  // controls.enableDamping = true;
 
   control = new TransformControls(camera, renderer.domElement);
   control.setMode("scale");
   control.enabled = false;
   scene.add(control);
+}
 
-  // postprocessing
+function setupPostProcessing() {
   composer = new EffectComposer(renderer);
 
   const renderPass = new RenderPass(scene, camera);
@@ -108,11 +93,7 @@ function setup() {
   outlinePass.edgeStrength = 1;
   outlinePass.edgeGlow = 4;
   outlinePass.edgeThickness = 1;
-
   composer.addPass(outlinePass);
-
-  const outputPass = new OutputPass();
-  composer.addPass(outputPass);
 
   effectFXAA = new ShaderPass(FXAAShader);
   effectFXAA.uniforms["resolution"].value.set(
@@ -120,21 +101,37 @@ function setup() {
     1 / window.innerHeight
   );
   composer.addPass(effectFXAA);
+
+  const outputPass = new OutputPass();
+  composer.addPass(outputPass);
+}
+
+// function setupEventListeners() {
+//   window.addEventListener("resize", onWindowResize);
+//   window.addEventListener("keydown", onKeyDown);
+//   window.addEventListener("keyup", onKeyUp);
+//   window.addEventListener("mousedown", onMouseDown);
+//   window.addEventListener("mouseup", onMouseUp);
+//   window.addEventListener("mousemove", onPointerMove);
+//   window.addEventListener("dblclick", onDoubleClick);
+// }
+
+function setup() {
+  setupCamera();
+  setupScene();
+  setupRenderer();
+  setupControls();
+  setupPostProcessing();
+  // setupEventListeners();
 }
 
 function addMesh(response) {
-  //const material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, map: response.texture });
   const material = new THREE.MeshBasicMaterial({
     side: THREE.DoubleSide,
     map: response.texture,
   });
-
   const geometry = new THREE.PlaneGeometry(0.5, 0.5 * response.ratio);
   const mesh = new THREE.Mesh(geometry, material);
-  //mesh.position.z = 0.1;
-  //mesh.position.x = 10;
-  //mesh.position.y = 0.5;
-  //mesh.rotation.y = 0.5;
   scene.add(mesh);
   meshes.push(mesh);
 }
@@ -186,13 +183,11 @@ function onMouseUp(event) {
   if (orbit.enabled && !dragging) {
     currentSelection = null;
     outlinePass.selectedObjects = [];
-
     control.detach();
     control.enabled = false;
   }
   dragging = false;
   interaction = Interaction.None;
-
   orbit.enabled = true;
   mouseDown = false;
 }
@@ -200,36 +195,26 @@ function onMouseUp(event) {
 function onMouseDown(event) {
   const raycaster = new THREE.Raycaster();
   raycaster.setFromCamera(pointer, camera);
-
   mouseDown = true;
 
   const intersects = raycaster.intersectObjects(meshes);
   if (intersects.length > 0) {
-    if (interaction != Interaction.Transform) {
+    if (interaction !== Interaction.Transform) {
       orbit.enabled = false;
       interaction = Interaction.Drag;
 
       currentSelection = intersects[0].object;
       outlinePass.selectedObjects = [currentSelection];
 
-      // construct plane perpendicular to camera forward passing through current selection
-      let fwd = new THREE.Vector3();
+      const fwd = new THREE.Vector3();
       camera.getWorldDirection(fwd);
 
-      let d = currentSelection.position.clone();
-      d.negate();
-      d.projectOnVector(fwd);
-
-      // get signed distance
-      let sd = d.dot(fwd);
-
-      // set plane
+      const d = currentSelection.position.clone().negate().projectOnVector(fwd);
+      const sd = d.dot(fwd);
       plane.set(fwd, sd);
 
-      // cast ray to find grab point
       const intersect = new THREE.Vector3();
       raycaster.ray.intersectPlane(plane, intersect);
-
       grabPoint = intersect;
     }
   } else {
@@ -239,10 +224,8 @@ function onMouseDown(event) {
 }
 
 function onDoubleClick() {
-  // cycle through transform controls
-  // if(Interaction.Drag)
   if (currentSelection) {
-    if (control.enabled && control.mode == "scale") {
+    if (control.enabled && control.mode === "scale") {
       interaction = Interaction.None;
       control.setMode("scale");
       control.detach();
@@ -270,26 +253,26 @@ function onDoubleClick() {
 function onPointerMove(event) {
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
   dragging = mouseDown;
 
-  if (interaction == Interaction.Drag) {
-    // cast ray to find new grab point
+  if (interaction === Interaction.Drag) {
     const newGrabPoint = new THREE.Vector3();
+    const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(pointer, camera);
     raycaster.ray.intersectPlane(plane, newGrabPoint);
 
-    let change = grabPoint.clone();
-    change.sub(newGrabPoint);
+    // let change = grabPoint.clone();
+    // change.sub(newGrabPoint);
+
+    const change = grabPoint.clone().sub(newGrabPoint);
 
     if (ctrlKey) {
-      let a = grabPoint.clone();
-      let b = newGrabPoint.clone();
+      const a = grabPoint.clone();
+      const b = newGrabPoint.clone();
       currentSelection.worldToLocal(a);
       currentSelection.worldToLocal(b);
-      let ab = a.clone().cross(b);
-
-      let r = b.angleTo(a);
+      const ab = a.clone().cross(b);
+      const r = b.angleTo(a);
       currentSelection.rotateZ(r * Math.sign(ab.z));
     } else {
       currentSelection.position.sub(change);
@@ -299,7 +282,6 @@ function onPointerMove(event) {
 }
 
 function debugShowPoint(pos) {
-  //for debug put sphere on intersect point
   const geometry = new THREE.SphereGeometry(0.01);
   const material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
   const mesh = new THREE.Mesh(geometry, material);
@@ -307,7 +289,7 @@ function debugShowPoint(pos) {
   scene.add(mesh);
 }
 
-let controller = {
+const controller = {
   setup,
   onMouseDown,
   onWindowResize,
