@@ -67,13 +67,13 @@ function MakeUserInteraction() {
       raycaster.setFromCamera(pointer, camera);
       mouseDown = true;
 
-      const intersects = raycaster.intersectObjects(meshes);
-      if (intersects.length > 0) {
+      const intersectedObjects = raycaster.intersectObjects(meshes);
+      if (intersectedObjects.length > 0) {
         if (interaction !== Interaction.Transform) {
           orbit.enabled = false;
           interaction = Interaction.Drag;
 
-          currentSelection = intersects[0].object;
+          currentSelection = intersectedObjects[0].object;
 
           const fwd = new THREE.Vector3();
           camera.getWorldDirection(fwd);
@@ -131,6 +131,7 @@ function MakeUserInteraction() {
         currentSelection = null;
         control.detach();
         control.enabled = false;
+        control.setMode("scale");
       }
       dragging = false;
       interaction = Interaction.None;
@@ -160,7 +161,7 @@ function MakeUserInteraction() {
               break;
           }
           control.enabled = true;
-          orbit.enabled = false;
+          // orbit.enabled = false;
         }
       }
     },
