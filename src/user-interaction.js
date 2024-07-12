@@ -69,11 +69,22 @@ function MakeUserInteraction() {
 
       const intersectedObjects = raycaster.intersectObjects(meshes);
       if (intersectedObjects.length > 0) {
-        if (interaction !== Interaction.Transform) {
-          orbit.enabled = false;
+        if (currentSelection !== intersectedObjects[0].object) {
+          currentSelection = intersectedObjects[0].object;
           interaction = Interaction.Drag;
 
-          currentSelection = intersectedObjects[0].object;
+          if (control.enabled) {
+            control.enabled = false;
+            control.detach();
+            control.setMode("scale");
+          }
+        }
+
+        if (interaction !== Interaction.Transform) {
+          orbit.enabled = false;
+
+          // set interaction to drag only if changed
+          interaction = Interaction.Drag;
 
           const fwd = new THREE.Vector3();
           camera.getWorldDirection(fwd);
