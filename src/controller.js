@@ -94,12 +94,12 @@ function addMesh(response) {
 }
 
 function animation() {
-  renderer.render(scene, camera);
   if (userinteraction.getCurrentSelection()) {
     outlinePass.selectedObjects = [userinteraction.getCurrentSelection()];
   } else {
     outlinePass.selectedObjects = [];
   }
+  renderer.render(scene, camera);
   if (composer) composer.render();
 }
 
