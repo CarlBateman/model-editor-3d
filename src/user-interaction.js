@@ -62,18 +62,6 @@ function MakeUserInteraction() {
       // }
     },
 
-    onMouseUp: function (event) {
-      if (orbit.enabled && !dragging) {
-        currentSelection = null;
-        control.detach();
-        control.enabled = false;
-      }
-      dragging = false;
-      interaction = Interaction.None;
-      orbit.enabled = true;
-      mouseDown = false;
-    },
-
     onMouseDown: function (event) {
       const raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(pointer, camera);
@@ -107,33 +95,6 @@ function MakeUserInteraction() {
       }
     },
 
-    onDoubleClick: function () {
-      if (currentSelection) {
-        if (control.enabled && control.mode === "scale") {
-          interaction = Interaction.None;
-          control.setMode("scale");
-          control.detach();
-          control.enabled = false;
-        } else {
-          interaction = Interaction.Transform;
-          control.attach(currentSelection);
-          switch (control.mode) {
-            case "translate":
-              control.setMode("rotate");
-              break;
-            case "rotate":
-              control.setMode("scale");
-              break;
-            case "scale":
-              control.setMode("translate");
-              break;
-          }
-          control.enabled = true;
-          orbit.enabled = false;
-        }
-      }
-    },
-
     onPointerMove: function (event) {
       pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
       pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -162,6 +123,45 @@ function MakeUserInteraction() {
           currentSelection.position.sub(change);
         }
         grabPoint = newGrabPoint;
+      }
+    },
+
+    onMouseUp: function (event) {
+      if (orbit.enabled && !dragging) {
+        currentSelection = null;
+        control.detach();
+        control.enabled = false;
+      }
+      dragging = false;
+      interaction = Interaction.None;
+      orbit.enabled = true;
+      mouseDown = false;
+    },
+
+    onDoubleClick: function () {
+      if (currentSelection) {
+        if (control.enabled && control.mode === "scale") {
+          interaction = Interaction.None;
+          control.setMode("scale");
+          control.detach();
+          control.enabled = false;
+        } else {
+          interaction = Interaction.Transform;
+          control.attach(currentSelection);
+          switch (control.mode) {
+            case "translate":
+              control.setMode("rotate");
+              break;
+            case "rotate":
+              control.setMode("scale");
+              break;
+            case "scale":
+              control.setMode("translate");
+              break;
+          }
+          control.enabled = true;
+          orbit.enabled = false;
+        }
       }
     },
 
