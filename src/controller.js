@@ -17,18 +17,26 @@ function setupCamera() {
     0.01,
     100
   );
-  camera.position.set(0, 2, 1.1);
+  camera.position.set(0, 2, 2.1);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
 }
 
 function setupScene() {
   scene = new THREE.Scene();
 
-  const geometry = new THREE.BoxGeometry(1, 1, 1);
-  const material = new THREE.MeshLambertMaterial({ color: 0x008800 });
-  const cube = new THREE.Mesh(geometry, material);
-  scene.add(cube);
-  meshes.push(cube);
+  let geometry = new THREE.BoxGeometry(1, 1, 1);
+  let material = new THREE.MeshLambertMaterial({ color: 0x008800 });
+  let mesh = new THREE.Mesh(geometry, material);
+  mesh.position.x = 1;
+  scene.add(mesh);
+  meshes.push(mesh);
+
+  material = new THREE.MeshLambertMaterial({ color: 0x880000 });
+  geometry = new THREE.SphereGeometry(0.71);
+  mesh = new THREE.Mesh(geometry, material);
+  mesh.position.x = -1;
+  scene.add(mesh);
+  meshes.push(mesh);
 
   const gridHelper = new THREE.GridHelper(100, 100);
   scene.add(gridHelper);
