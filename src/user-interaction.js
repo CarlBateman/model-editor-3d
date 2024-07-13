@@ -26,6 +26,7 @@ function MakeUserInteraction() {
 
   let plane = new THREE.Plane();
   let transformControl, orbitControl;
+  const raycaster = new THREE.Raycaster();
 
   const userinteraction = {
     setup: function () {
@@ -67,7 +68,6 @@ function MakeUserInteraction() {
       // if reselected old object and not transforming then drag
       // if nothing selected then orbit
 
-      const raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(pointer, camera);
       mouseDown = true;
 
