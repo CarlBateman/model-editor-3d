@@ -63,13 +63,19 @@ function MakeUserInteraction() {
     },
 
     onMouseDown: function (event) {
+      // if selected new object then drag
+      // if reselected old object and not transforming then drag
+      // if nothing selected then orbit
+
       const raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(pointer, camera);
       mouseDown = true;
 
       const intersectedObjects = raycaster.intersectObjects(meshes);
       if (intersectedObjects.length > 0) {
+        // object selecting so drag or transform
         if (currentSelection !== intersectedObjects[0].object) {
+          // selection changed or new
           currentSelection = intersectedObjects[0].object;
           interaction = Interaction.Drag;
 
@@ -83,16 +89,14 @@ function MakeUserInteraction() {
         if (interaction !== Interaction.Transform) {
           orbitControl.enabled = false;
 
-          // set interaction to drag only if changed
           interaction = Interaction.Drag;
 
           const fwd = new THREE.Vector3();
           camera.getWorldDirection(fwd);
 
-          const d = currentSelection.position
-            .clone()
-            .negate()
-            .projectOnVector(fwd);
+          const d = currentSelection.position.clone();
+          d.negate();
+          d.projectOnVector(fwd);
           const sd = d.dot(fwd);
           plane.set(fwd, sd);
 
@@ -100,7 +104,12 @@ function MakeUserInteraction() {
           raycaster.ray.intersectPlane(plane, intersect);
           grabPoint = intersect;
         }
+
+        orbitControl.enabled = false;
+        if (transformControl.enabled) interaction = Interaction.Transform;
+        else interaction = Interaction.Drag;
       } else {
+        //transformControl.enabled = false;
         orbitControl.enabled = true;
         interaction = Interaction.Orbit;
       }
@@ -111,7 +120,7 @@ function MakeUserInteraction() {
       pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
       dragging = mouseDown;
 
-      if (interaction === Interaction.Drag) {
+      if (interaction === Interaction.Drag && dragging) {
         const newGrabPoint = new THREE.Vector3();
         const raycaster = new THREE.Raycaster();
         raycaster.setFromCamera(pointer, camera);
@@ -145,7 +154,7 @@ function MakeUserInteraction() {
         transformControl.setMode("scale");
       }
       dragging = false;
-      interaction = Interaction.None;
+      // interaction = Interaction.None;
       orbitControl.enabled = true;
       mouseDown = false;
     },
@@ -172,7 +181,6 @@ function MakeUserInteraction() {
               break;
           }
           transformControl.enabled = true;
-          // orbit.enabled = false;
         }
       }
     },
