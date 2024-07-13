@@ -25,16 +25,16 @@ function MakeUserInteraction() {
   let mouseDown = false;
 
   let plane = new THREE.Plane();
-  let control, orbit;
+  let transformControl, orbitControl;
 
   const userinteraction = {
     setup: function () {
-      orbit = new OrbitControls(camera, renderer.domElement);
+      orbitControl = new OrbitControls(camera, renderer.domElement);
 
-      control = new TransformControls(camera, renderer.domElement);
-      control.setMode("scale");
-      control.enabled = false;
-      scene.add(control);
+      transformControl = new TransformControls(camera, renderer.domElement);
+      transformControl.setMode("scale");
+      transformControl.enabled = false;
+      scene.add(transformControl);
     },
 
     onKeyDown: function (e) {
@@ -73,15 +73,15 @@ function MakeUserInteraction() {
           currentSelection = intersectedObjects[0].object;
           interaction = Interaction.Drag;
 
-          if (control.enabled) {
-            control.enabled = false;
-            control.detach();
-            control.setMode("scale");
+          if (transformControl.enabled) {
+            transformControl.enabled = false;
+            transformControl.detach();
+            transformControl.setMode("scale");
           }
         }
 
         if (interaction !== Interaction.Transform) {
-          orbit.enabled = false;
+          orbitControl.enabled = false;
 
           // set interaction to drag only if changed
           interaction = Interaction.Drag;
@@ -101,7 +101,7 @@ function MakeUserInteraction() {
           grabPoint = intersect;
         }
       } else {
-        orbit.enabled = true;
+        orbitControl.enabled = true;
         interaction = Interaction.Orbit;
       }
     },
@@ -138,40 +138,40 @@ function MakeUserInteraction() {
     },
 
     onMouseUp: function (event) {
-      if (orbit.enabled && !dragging) {
+      if (orbitControl.enabled && !dragging) {
         currentSelection = null;
-        control.detach();
-        control.enabled = false;
-        control.setMode("scale");
+        transformControl.detach();
+        transformControl.enabled = false;
+        transformControl.setMode("scale");
       }
       dragging = false;
       interaction = Interaction.None;
-      orbit.enabled = true;
+      orbitControl.enabled = true;
       mouseDown = false;
     },
 
     onDoubleClick: function () {
       if (currentSelection) {
-        if (control.enabled && control.mode === "scale") {
+        if (transformControl.enabled && transformControl.mode === "scale") {
           interaction = Interaction.None;
-          control.setMode("scale");
-          control.detach();
-          control.enabled = false;
+          transformControl.setMode("scale");
+          transformControl.detach();
+          transformControl.enabled = false;
         } else {
           interaction = Interaction.Transform;
-          control.attach(currentSelection);
-          switch (control.mode) {
+          transformControl.attach(currentSelection);
+          switch (transformControl.mode) {
             case "translate":
-              control.setMode("rotate");
+              transformControl.setMode("rotate");
               break;
             case "rotate":
-              control.setMode("scale");
+              transformControl.setMode("scale");
               break;
             case "scale":
-              control.setMode("translate");
+              transformControl.setMode("translate");
               break;
           }
-          control.enabled = true;
+          transformControl.enabled = true;
           // orbit.enabled = false;
         }
       }
