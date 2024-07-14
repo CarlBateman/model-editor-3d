@@ -163,9 +163,7 @@ function MakeUserInteraction() {
       if (currentSelection) {
         if (transformControl.enabled && transformControl.mode === "scale") {
           interaction = Interaction.None;
-          transformControl.setMode("scale");
           transformControl.detach();
-          transformControl.enabled = false;
         } else {
           interaction = Interaction.Transform;
           transformControl.attach(currentSelection);
