@@ -48,17 +48,17 @@ function setup() {
       listeners: { move: window.dragMoveListener },
       allowFrom: ".drag-handle",
     })
-    .resizable({
-      listeners: { move: window.dragResizeListener },
-      edges: { left: true, right: true, bottom: true, top: false },
-      modifiers: [
-        interact.modifiers.restrictSize({
-          min: { width: 100, height: 100 },
-          max: { width: 500, height: 500 },
-        }),
-      ],
-      // allowFrom: ".resize-handle",
-    })
+    // .resizable({
+    //   listeners: { move: window.dragResizeListener },
+    //   edges: { left: true, right: true, bottom: true, top: false },
+    //   modifiers: [
+    //     interact.modifiers.restrictSize({
+    //       min: { width: 100, height: 100 },
+    //       max: { width: 500, height: 500 },
+    //     }),
+    //   ],
+    //   // allowFrom: ".resize-handle",
+    // })
     .pointerEvents({
       allowFrom: "*",
     });
