@@ -45,6 +45,9 @@ body {
   -webkit-user-select: none;
 }
 
+td.propertyName {
+  text-transform: capitalize;
+}
 table.blueTable {
     border: 1px solid #000000;
     background-color: #EEEEEE;

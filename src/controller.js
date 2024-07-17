@@ -191,7 +191,7 @@ function setEventHandlers() {
 }
 
 function generateTableRow(propertyName, property, labels) {
-  let row = `<tr><td>${propertyName}</td>`;
+  let row = `<tr><td class="propertyName">${propertyName}</td>`;
   labels.forEach((label) => {
     const axis = label.toLowerCase();
     const value = property[axis] !== undefined ? property[axis].toFixed(2) : 0;
