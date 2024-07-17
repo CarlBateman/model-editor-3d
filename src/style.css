@@ -74,8 +74,18 @@ table.blueTable {
     border-radius: 5px;
   }
 
+  input {
+    width: 60px;
+    /* border: none; */
+    padding: 0;
+    margin: 0;
+    font-size: 14px;
+}
+
 .movable-box {
-    position: fixed;
+  width: fit-content !important;
+  width: -moz-fit-content !important;
+      position: fixed;
     z-index: 9;
     width: 120px;
     border-radius: 4px;
