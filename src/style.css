@@ -81,6 +81,10 @@ table.blueTable {
     margin: 0;
     font-size: 14px;
 }
+input[type=color]{
+  vertical-align: middle;
+
+}
 
 .movable-box {
   width: fit-content !important;
