@@ -177,6 +177,7 @@ function MakeUserInteraction() {
         if (transformControl.enabled && transformControl.mode === "scale") {
           interaction = Interaction.None;
           transformControl.detach();
+          transformControl.setMode("translate");
         } else {
           interaction = Interaction.Transform;
           transformControl.attach(currentSelection);
