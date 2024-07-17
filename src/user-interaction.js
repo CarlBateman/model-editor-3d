@@ -23,6 +23,7 @@ function MakeUserInteraction() {
 
   let dragging = false;
   let mouseDown = false;
+  let transformControlDragging = false;
 
   let plane = new THREE.Plane();
   let transformControl, orbitControl;
@@ -33,6 +34,10 @@ function MakeUserInteraction() {
       orbitControl = new OrbitControls(camera, renderer.domElement);
 
       transformControl = new TransformControls(camera, renderer.domElement);
+      transformControl.addEventListener("dragging-changed", function (event) {
+        transformControlDragging = !event.value;
+      });
+
       transformControl.setMode("scale");
       transformControl.enabled = false;
       scene.add(transformControl);
@@ -121,6 +126,8 @@ function MakeUserInteraction() {
       pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
       pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
       dragging = mouseDown;
+
+      orbitControl.enabled = transformControlDragging;
 
       if (interaction === Interaction.Drag && dragging) {
         const newGrabPoint = new THREE.Vector3();
