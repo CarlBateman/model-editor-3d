@@ -23,7 +23,6 @@ function MakeUserInteraction() {
 
   let dragging = false;
   let mouseDown = false;
-  let transformControlDragging = false;
 
   let plane = new THREE.Plane();
   let transformControl, orbitControl;
@@ -34,9 +33,8 @@ function MakeUserInteraction() {
       orbitControl = new OrbitControls(camera, renderer.domElement);
 
       transformControl = new TransformControls(camera, renderer.domElement);
-      transformControl.addEventListener("dragging-changed", function (event) {
-        transformControlDragging = !event.value;
-      });
+      // transformControl.addEventListener("dragging-changed", function (event) {
+      // });
 
       transformControl.setMode("scale");
       transformControl.enabled = false;
@@ -127,8 +125,6 @@ function MakeUserInteraction() {
       pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
       dragging = mouseDown;
 
-      orbitControl.enabled = transformControlDragging;
-
       if (interaction === Interaction.Drag && dragging) {
         const newGrabPoint = new THREE.Vector3();
         const raycaster = new THREE.Raycaster();
@@ -175,9 +171,11 @@ function MakeUserInteraction() {
 
       if (currentSelection) {
         if (transformControl.enabled && transformControl.mode === "scale") {
-          interaction = Interaction.None;
+          interaction = Interaction.Drag;
+
+          transformControl.enabled = false;
           transformControl.detach();
-          transformControl.setMode("translate");
+          transformControl.setMode("scale");
         } else {
           interaction = Interaction.Transform;
           transformControl.attach(currentSelection);
