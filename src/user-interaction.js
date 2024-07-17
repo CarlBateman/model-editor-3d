@@ -38,16 +38,16 @@ function MakeUserInteraction() {
       scene.add(transformControl);
     },
 
-    onKeyDown: function (e) {
-      shiftKey = e.shiftKey;
-      ctrlKey = e.ctrlKey;
-      altKey = e.altKey;
+    onKeyDown: function (event) {
+      shiftKey = event.shiftKey;
+      ctrlKey = event.ctrlKey;
+      altKey = event.altKey;
     },
 
-    onKeyUp: function (e) {
-      shiftKey = e.shiftKey;
-      ctrlKey = e.ctrlKey;
-      altKey = e.altKey;
+    onKeyUp: function (event) {
+      shiftKey = event.shiftKey;
+      ctrlKey = event.ctrlKey;
+      altKey = event.altKey;
       // if (e.key == "Delete" || e.key == "Backspace") {
       //   if (currentSelection != null) {
       //     control.detach();
@@ -64,6 +64,8 @@ function MakeUserInteraction() {
     },
 
     onMouseDown: function (event) {
+      if (event.target.id !== "editor-view") return;
+
       // if selected new object then drag
       // if reselected old object and not transforming then drag
       // if nothing selected then orbit
@@ -147,6 +149,8 @@ function MakeUserInteraction() {
     },
 
     onMouseUp: function (event) {
+      if (event.target.id !== "editor-view") return;
+
       if (orbitControl.enabled && !dragging) {
         currentSelection = null;
         transformControl.detach();
@@ -159,7 +163,9 @@ function MakeUserInteraction() {
       mouseDown = false;
     },
 
-    onDoubleClick: function () {
+    onDoubleClick: function (event) {
+      if (event.target.id !== "editor-view") return;
+
       if (currentSelection) {
         if (transformControl.enabled && transformControl.mode === "scale") {
           interaction = Interaction.None;
