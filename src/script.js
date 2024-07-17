@@ -17,5 +17,3 @@ document.addEventListener("mouseup", userinteraction.onMouseUp);
 document.addEventListener("keyup", userinteraction.onKeyUp);
 document.addEventListener("keydown", userinteraction.onKeyDown);
 document.addEventListener("dblclick", userinteraction.onDoubleClick);
-
-// document.getElementById("control_options").addEventListener("mousedown", (event) => event.stopPropagation());
