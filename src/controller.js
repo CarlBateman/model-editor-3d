@@ -145,10 +145,8 @@ function debugShowPoint(pos) {
   scene.add(mesh);
 }
 
-// Create a floating HTML div
 const infoDiv = document.getElementById("info");
 
-// Function to extract properties from the mesh
 function getMeshProperties(mesh) {
   return {
     position: mesh.position,
@@ -159,7 +157,6 @@ function getMeshProperties(mesh) {
   };
 }
 
-// Function to generate event handlers for property inputs
 function createPropertyEventHandler(object, property, axis) {
   return function (event) {
     object[property][axis] = parseFloat(event.target.value);
@@ -172,7 +169,6 @@ function createColorEventHandler(material) {
   };
 }
 
-// Function to create and set event handlers
 function setEventHandlers() {
   document.querySelectorAll("input[data-prop]").forEach((input) => {
     const [property, axis] = input.getAttribute("data-prop").split("-");
@@ -194,7 +190,6 @@ function setEventHandlers() {
   });
 }
 
-// Function to generate a table row dynamically
 function generateTableRow(propertyName, property, labels) {
   let row = `<tr><td>${propertyName}</td>`;
   labels.forEach((label) => {
@@ -206,7 +201,6 @@ function generateTableRow(propertyName, property, labels) {
   return row;
 }
 
-// Function to update the value of an individual input
 function updateInputValue(propertyName, property, labels) {
   labels.forEach((label) => {
     const axis = label.toLowerCase();
@@ -218,7 +212,6 @@ function updateInputValue(propertyName, property, labels) {
   });
 }
 
-// Function to update the color input value
 function updateColorInputValue(color) {
   const input = document.getElementById("color");
   if (input) {
@@ -228,14 +221,7 @@ function updateColorInputValue(color) {
 
 // Function to initialize the HTML div with mesh properties in a table
 function initializeInfoDiv(properties) {
-  let tableContent = `
-            <tr>
-                <th>Property</th>
-                <th>X</th>
-                <th>Y</th>
-                <th>Z</th>
-            </tr>
-        `;
+  let tableContent = "";
 
   if (properties.position) {
     // prettier-ignore
@@ -266,7 +252,7 @@ function initializeInfoDiv(properties) {
             `;
   }
 
-  infoDiv.innerHTML = `<strong>Mesh Properties:</strong><table class="blueTable">${tableContent}</table>`;
+  infoDiv.innerHTML = `<strong>Properties</strong><table class="blueTable">${tableContent}</table>`;
 
   // Set the event handlers after updating the HTML
   setEventHandlers();
