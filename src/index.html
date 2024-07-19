@@ -4,15 +4,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometries</title>
-    <link rel="stylesheet" href="./style.css">
+    <title>Three.js Mesh Properties with dat.GUI</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
 </head>
 
 <body>
-    <div id="1" class="movable-box">
-        <div id="info" class="drag-handle">Properties</div>
-    </div>
-    <script type="module" src="./script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+    <script>
+        function main() {
+            // Scene setup
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Create a cube mesh
+            const geometry = new THREE.BoxGeometry();
+            const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+            const cube = new THREE.Mesh(geometry, material);
+            scene.add(cube);
+
+            camera.position.z = 5;
+
+            // dat.GUI setup
+            const gui = new dat.GUI();
+            const cubeFolder = gui.addFolder('Cube Properties');
+            cubeFolder.add(cube.position, 'x', -10, 10).name('Position X');
+            cubeFolder.add(cube.position, 'y', -10, 10).name('Position Y');
+            cubeFolder.add(cube.position, 'z', -10, 10).name('Position Z');
+
+            const rotationFolder = cubeFolder.addFolder('Rotation');
+            rotationFolder.add(cube.rotation, 'x', 0, Math.PI * 2).name('Rotation X').onChange(deg => cube.rotation.x = deg);
+            rotationFolder.add(cube.rotation, 'y', 0, Math.PI * 2).name('Rotation Y').onChange(deg => cube.rotation.y = deg);
+            rotationFolder.add(cube.rotation, 'z', 0, Math.PI * 2).name('Rotation Z').onChange(deg => cube.rotation.z = deg);
+
+            const scaleFolder = cubeFolder.addFolder('Scale');
+            scaleFolder.add(cube.scale, 'x', 0.1, 5).name('Scale X');
+            scaleFolder.add(cube.scale, 'y', 0.1, 5).name('Scale Y');
+            scaleFolder.add(cube.scale, 'z', 0.1, 5).name('Scale Z');
+
+            cubeFolder.open();
+            rotationFolder.open();
+            scaleFolder.open();
+
+            const materialFolder = gui.addFolder('Material');
+            const color = { color: material.color.getHex() };
+            materialFolder.addColor(color, 'color').name('Color').onChange(hex => material.color.setHex(hex));
+            materialFolder.open();
+
+            // Render loop
+            function animate() {
+                requestAnimationFrame(animate);
+
+                // Rotate the cube for demonstration purposes
+                cube.rotation.x += 0.01;
+                cube.rotation.y += 0.01;
+
+                // Render Three.js scene
+                renderer.render(scene, camera);
+            }
+
+            animate();
+
+            // Adjust the renderer and camera aspect ratio when the window is resized
+            window.addEventListener('resize', () => {
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+            });
+        }
+
+        main();
+    </script>
 </body>
 
 </html>
