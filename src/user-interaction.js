@@ -37,8 +37,14 @@ function MakeUserInteraction() {
       orbitControl = new OrbitControls(camera, renderer.domElement);
 
       transformControl = new TransformControls(camera, renderer.domElement);
-      // transformControl.addEventListener("dragging-changed", function (event) {
-      // });
+
+      transformControl.addEventListener("change", function (event) {
+        const objectMovedEvent = new CustomEvent("objectMoved", {
+          detail: { mesh: transformControl.object },
+        });
+        console.log(transformControl);
+        dispatchEvent(objectMovedEvent);
+      });
 
       transformControl.setMode("scale");
       transformControl.enabled = false;
