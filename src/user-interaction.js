@@ -28,10 +28,6 @@ function MakeUserInteraction() {
   let transformControl, orbitControl;
   const raycaster = new THREE.Raycaster();
 
-  // const objectSelectedEvent = new CustomEvent("objectSelected", {
-  //   detail: { mesh: currentSelection },
-  // });
-
   const userinteraction = {
     setup: function () {
       orbitControl = new OrbitControls(camera, renderer.domElement);
