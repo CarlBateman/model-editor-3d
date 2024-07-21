@@ -28,6 +28,10 @@ function MakeUserInteraction() {
   let transformControl, orbitControl;
   const raycaster = new THREE.Raycaster();
 
+  // const objectSelectedEvent = new CustomEvent("objectSelected", {
+  //   detail: { mesh: currentSelection },
+  // });
+
   const userinteraction = {
     setup: function () {
       orbitControl = new OrbitControls(camera, renderer.domElement);
@@ -82,6 +86,12 @@ function MakeUserInteraction() {
         if (currentSelection !== intersectedObjects[0].object) {
           // selection changed or new
           currentSelection = intersectedObjects[0].object;
+
+          const objectSelectedEvent = new CustomEvent("objectSelected", {
+            detail: { mesh: currentSelection },
+          });
+          dispatchEvent(objectSelectedEvent);
+
           interaction = Interaction.Drag;
 
           if (transformControl.enabled) {
@@ -148,6 +158,12 @@ function MakeUserInteraction() {
           currentSelection.position.sub(change);
         }
         grabPoint = newGrabPoint;
+
+        const objectMovedEvent = new CustomEvent("objectMoved", {
+          detail: { mesh: currentSelection },
+        });
+
+        dispatchEvent(objectMovedEvent);
       }
     },
 
@@ -155,7 +171,7 @@ function MakeUserInteraction() {
       if (event.target.id !== "editor-view") return;
 
       if (orbitControl.enabled && !dragging) {
-        currentSelection = null;
+        // currentSelection = null;
         transformControl.detach();
         transformControl.enabled = false;
         transformControl.setMode("scale");
