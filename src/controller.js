@@ -85,6 +85,9 @@ function setupPostProcessing() {
 }
 
 function setup() {
+  addEventListener("objectSelected", updateSelection, false);
+  document.getElementById("1").style.display = "none";
+
   setupCamera();
   setupScene();
   setupRenderer();
@@ -92,6 +95,18 @@ function setup() {
   setupPostProcessing();
   // setupEventListeners();
 }
+
+function updateSelection(e) {
+  if (e.detail.mesh) {
+    if (curr !== e.detail.mesh) {
+      curr = e.detail.mesh;
+      outlinePass.selectedObjects = [curr];
+    }
+    document.getElementById("1").style.display = "block";
+  } else {
+    document.getElementById("1").style.display = "none";
+    outlinePass.selectedObjects = [];
+  }}
 
 function addMesh(response) {
   const material = new THREE.MeshBasicMaterial({
@@ -105,16 +120,6 @@ function addMesh(response) {
 }
 
 function animation() {
-  if (userinteraction.getCurrentSelection()) {
-    if (curr !== userinteraction.getCurrentSelection()) {
-      curr = userinteraction.getCurrentSelection();
-      outlinePass.selectedObjects = [curr];
-    }
-    document.getElementById("1").style.display = "block";
-  } else {
-    document.getElementById("1").style.display = "none";
-    outlinePass.selectedObjects = [];
-  }
   renderer.render(scene, camera);
   if (composer) composer.render();
 }

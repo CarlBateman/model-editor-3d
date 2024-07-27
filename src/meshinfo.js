@@ -141,20 +141,22 @@ function MakeMeshInfo() {
 
   // Function to update the HTML div with currMesh properties in a table
   function updateInfoDiv(e) {
-    currMesh = e.detail.mesh;
-    const properties = getMeshProperties(currMesh);
-    if (properties.position) {
-      // prettier-ignore
-      updateInputValue('position', properties.position, ['X', 'Y', 'Z']);
-    }
-    if (properties.rotation) {
-      updateInputValue("rotation", properties.rotation, ["X", "Y", "Z"]);
-    }
-    if (properties.scale) {
-      updateInputValue("scale", properties.scale, ["X", "Y", "Z"]);
-    }
-    if (properties.materialColor) {
-      updateColorInputValue(properties.materialColor);
+    if (e.detail.mesh) {
+      currMesh = e.detail.mesh;
+      const properties = getMeshProperties(currMesh);
+      if (properties.position) {
+        // prettier-ignore
+        updateInputValue('position', properties.position, ['X', 'Y', 'Z']);
+      }
+      if (properties.rotation) {
+        updateInputValue("rotation", properties.rotation, ["X", "Y", "Z"]);
+      }
+      if (properties.scale) {
+        updateInputValue("scale", properties.scale, ["X", "Y", "Z"]);
+      }
+      if (properties.materialColor) {
+        updateColorInputValue(properties.materialColor);
+      }
     }
   }
 

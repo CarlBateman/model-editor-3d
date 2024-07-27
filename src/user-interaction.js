@@ -38,7 +38,7 @@ function MakeUserInteraction() {
         const objectMovedEvent = new CustomEvent("objectMoved", {
           detail: { mesh: transformControl.object },
         });
-        console.log(transformControl);
+        //console.log(transformControl);
         dispatchEvent(objectMovedEvent);
       });
 
@@ -129,6 +129,12 @@ function MakeUserInteraction() {
         //transformControl.enabled = false;
         orbitControl.enabled = true;
         interaction = Interaction.Orbit;
+        const objectSelectedEvent = new CustomEvent("objectSelected", {
+
+          detail: { mesh: null },
+        });
+        dispatchEvent(objectSelectedEvent);
+
       }
     },
 
