@@ -86,6 +86,7 @@ function setupPostProcessing() {
 
 function setup() {
   addEventListener("objectSelected", updateSelection, false);
+  // TODO don't set display = "none" here
   document.getElementById("1").style.display = "none";
 
   setupCamera();
@@ -102,9 +103,7 @@ function updateSelection(e) {
       curr = e.detail.mesh;
       outlinePass.selectedObjects = [curr];
     }
-    document.getElementById("1").style.display = "block";
   } else {
-    document.getElementById("1").style.display = "none";
     outlinePass.selectedObjects = [];
   }}
 
