@@ -6,7 +6,7 @@ import { OutlinePass } from "three/addons/postprocessing/OutlinePass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { FXAAShader } from "three/addons/shaders/FXAAShader.js";
 
-import { userinteraction } from "./user-interaction.js";
+//import { userInteraction } from "./user-interaction.js";
 
 let camera, scene, renderer, composer, effectFXAA, outlinePass;
 let meshes = [];
@@ -104,6 +104,7 @@ function updateSelection(e) {
       outlinePass.selectedObjects = [curr];
     }
   } else {
+    curr = null;
     outlinePass.selectedObjects = [];
   }}
 

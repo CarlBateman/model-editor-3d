@@ -135,6 +135,8 @@ function MakeMeshInfo() {
 
 		infoDiv.innerHTML = `<strong>Properties</strong><table class="blueTable">${tableContent}</table>`;
 
+		document.getElementById("1").style.display = "block";
+
 		// Set the event handlers after updating the HTML
 		setEventHandlers();
 	}

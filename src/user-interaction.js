@@ -3,57 +3,47 @@ import { TransformControls } from "three/examples/jsm/controls/TransformControls
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { camera, renderer, scene, meshes } from "./controller.js";
 
-const Interaction = {
-	None: "None",
-	Orbit: "Orbit",
-	Drag: "Drag",
-	Transform: "Transform",
-};
-
-function MakeUserInteraction() {
-	let interaction = Interaction.None;
-
-	let pointer = new THREE.Vector2();
-
+// Define the Interaction States
+// Define the Context
+function createUserInteraction() {
+	const pointer = new THREE.Vector2();
 	let shiftKey = false;
 	let ctrlKey = false;
 	let altKey = false;
-
-	let currentSelection, grabPoint;
-
+	let currentSelection = null;
+	let grabPoint = null;
+	let mouseDown = false;
 	let dragging = false;
 	let transformDragging = false;
-	let mouseDown = false;
-
-	let plane = new THREE.Plane();
-	let transformControl, orbitControl;
+	const plane = new THREE.Plane();
+	let transformControl = null;
+	let orbitControl = null;
 	const raycaster = new THREE.Raycaster();
+
+	// Create instances of each state upfront
+	const baseState = createBaseState();
+	const orbitState = createOrbitState();
+	const dragState = createDragState();
+	const transformState = createTransformState();
+	let state = baseState;
+
+	function transitionTo(newState) {
+		// console.log(state.name, " > ", newState.name);
+		state = newState;
+	}
 
 	function setup() {
 		orbitControl = new OrbitControls(camera, renderer.domElement);
-
 		transformControl = new TransformControls(camera, renderer.domElement);
 
-		transformControl.addEventListener("change", function (event) {
-			const objectMovedEvent = new CustomEvent("objectMoved", {
-				detail: { mesh: transformControl.object },
-			});
-			//console.log(transformControl);
-			dispatchEvent(objectMovedEvent);
-
-
-		});
-
-		transformControl.addEventListener('dragging-changed', function (event) {
-			orbitControl.enabled = !event.value;
-			transformDragging = event.value;
-		});
-
-
+		transformControl.addEventListener("change", onTransformChange);
+		transformControl.addEventListener("dragging-changed", onTransformDraggingChanged);
 
 		transformControl.setMode("scale");
 		transformControl.enabled = false;
 		scene.add(transformControl);
+
+		addEventListeners();
 	}
 
 	function onKeyDown(event) {
@@ -66,185 +56,229 @@ function MakeUserInteraction() {
 		shiftKey = event.shiftKey;
 		ctrlKey = event.ctrlKey;
 		altKey = event.altKey;
-		// if (e.key == "Delete" || e.key == "Backspace") {
-		//   if (currentSelection != null) {
-		//     control.detach();
-
-		//     const index = meshes.indexOf(currentSelection);
-		//     meshes.splice(index, 1);
-		//     inactiveMeshes.push(currentSelection);
-
-		//     currentSelection.visible = false;
-		//     currentSelection = null;
-		//   }
-		//   return;
-		// }
 	}
 
-	function onMouseDown(event) {
-		if (event.target.id !== "editor-view") return;
+	function onTransformChange(event) {
+		const objectMovedEvent = new CustomEvent("objectMoved", {
+			detail: { mesh: transformControl.object },
+		});
+		dispatchEvent(objectMovedEvent);
+	}
 
-		// if selected new object then drag
-		// if reselected old object and not transforming then drag
-		// if nothing selected then orbit
-		mouseDown = true;
+	function onTransformDraggingChanged(event) {
+		orbitControl.enabled = !event.value;
+		transformDragging = event.value;
+	}
 
-		if (transformDragging) return;
-
-		raycaster.setFromCamera(pointer, camera);
-
-		const intersectedObjects = raycaster.intersectObjects(meshes);
-		if (intersectedObjects.length > 0) {
-			// object selecting so drag or transform
-			if (currentSelection !== intersectedObjects[0].object) {
-				// selection changed or new
-				currentSelection = intersectedObjects[0].object;
-
-				const objectSelectedEvent = new CustomEvent("objectSelected", {
-					detail: { mesh: currentSelection },
-				});
-				dispatchEvent(objectSelectedEvent);
-
-				interaction = Interaction.Drag;
-
-				if (transformControl.enabled) {
-					transformControl.enabled = false;
-					transformControl.detach();
-					transformControl.setMode("scale");
-				}
-			}
-
-			if (interaction !== Interaction.Transform) {
-				orbitControl.enabled = false;
-
-				interaction = Interaction.Drag;
-
-				const fwd = new THREE.Vector3();
-				camera.getWorldDirection(fwd);
-
-				const d = currentSelection.position.clone();
-				d.negate();
-				d.projectOnVector(fwd);
-				const sd = d.dot(fwd);
-				plane.set(fwd, sd);
-
-				const intersect = new THREE.Vector3();
-				raycaster.ray.intersectPlane(plane, intersect);
-				grabPoint = intersect;
-			}
-
-			orbitControl.enabled = false;
-			if (transformControl.enabled) interaction = Interaction.Transform;
-			else interaction = Interaction.Drag;
-		} else {
-			//transformControl.enabled = false;
-			orbitControl.enabled = true;
-			interaction = Interaction.Orbit;
-			const objectSelectedEvent = new CustomEvent("objectSelected", {
-
-				detail: { mesh: null },
-			});
-			dispatchEvent(objectSelectedEvent);
-
-		}
+	function addEventListeners() {
+		document.addEventListener("pointermove", onPointerMove);
+		document.addEventListener("mousedown", onMouseDown);
+		document.addEventListener("mouseup", onMouseUp);
+		document.addEventListener("keyup", onKeyUp);
+		document.addEventListener("keydown", onKeyDown);
+		document.addEventListener("dblclick", onDoubleClick);
 	}
 
 	function onPointerMove(event) {
 		pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
 		pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-		dragging = mouseDown;
+		dragging = mouseDown
+		//// console.log("Move", state.name);
+		state.onPointerMove(event);
+	}
 
-		if (interaction === Interaction.Drag && dragging) {
-			const newGrabPoint = new THREE.Vector3();
-			const raycaster = new THREE.Raycaster();
-			raycaster.setFromCamera(pointer, camera);
-			raycaster.ray.intersectPlane(plane, newGrabPoint);
-
-			// let change = grabPoint.clone();
-			// change.sub(newGrabPoint);
-
-			const change = grabPoint.clone().sub(newGrabPoint);
-
-			if (ctrlKey) {
-				const a = grabPoint.clone();
-				const b = newGrabPoint.clone();
-				currentSelection.worldToLocal(a);
-				currentSelection.worldToLocal(b);
-				const ab = a.clone().cross(b);
-				const r = b.angleTo(a);
-				currentSelection.rotateZ(r * Math.sign(ab.z));
-			} else {
-				currentSelection.position.sub(change);
-			}
-			grabPoint = newGrabPoint;
-
-			const objectMovedEvent = new CustomEvent("objectMoved", {
-				detail: { mesh: currentSelection },
-			});
-
-			dispatchEvent(objectMovedEvent);
-		}
+	function onMouseDown(event) {
+		if (event.target.id !== "editor-view") return;
+		mouseDown = true;
+		// console.log("Down", state.name);
+		state.onMouseDown(event);
 	}
 
 	function onMouseUp(event) {
-		if (event.target.id !== "editor-view") return;
-
-		if (orbitControl.enabled && !dragging) {
-			// currentSelection = null;
-			transformControl.detach();
-			transformControl.enabled = false;
-			transformControl.setMode("scale");
-		}
-		dragging = false;
-		// interaction = Interaction.None;
-		orbitControl.enabled = true;
 		mouseDown = false;
+		//dragging = false;
+		orbitControl.enabled = true;
+		// console.log("Up", state.name);
+		state.onMouseUp(event);
 	}
 
 	function onDoubleClick(event) {
-		if (event.target.id !== "editor-view") return;
+		// console.log("Double Click", state.name);
+		state.onDoubleClick(event);
+	}
 
-		if (currentSelection) {
-			if (transformControl.enabled && transformControl.mode === "scale") {
-				interaction = Interaction.Drag;
-
+	function updateSelection(mesh) {
+		if (currentSelection !== mesh) {
+			currentSelection = mesh;
+			const objectSelectedEvent = new CustomEvent("objectSelected", {
+				detail: { mesh: currentSelection },
+			});
+			dispatchEvent(objectSelectedEvent);
+			if (transformControl.enabled) {
 				transformControl.enabled = false;
 				transformControl.detach();
 				transformControl.setMode("scale");
-			} else {
-				interaction = Interaction.Transform;
-				transformControl.attach(currentSelection);
-				switch (transformControl.mode) {
-					case "translate":
-						transformControl.setMode("rotate");
-						break;
-					case "rotate":
-						transformControl.setMode("scale");
-						break;
-					case "scale":
-						transformControl.setMode("translate");
-						break;
-				}
-				transformControl.enabled = true;
 			}
 		}
 	}
 
-	function getCurrentSelection() {
-		return currentSelection;
+	function initialiseGrabPoint() {
+		const fwd = new THREE.Vector3();
+		camera.getWorldDirection(fwd);
+
+		const d = currentSelection.position.clone();
+		d.negate();
+		d.projectOnVector(fwd);
+		const sd = d.dot(fwd);
+		plane.set(fwd, sd);
+
+		const intersect = new THREE.Vector3();
+		raycaster.ray.intersectPlane(plane, intersect);
+		grabPoint = intersect;
 	}
 
+	function createBaseState() {
+		let selected = false;
+		return {
+		name : "BaseState",
+			onMouseDown(event) {
+				mouseDown = true;
+				// look for intersection
+				raycaster.setFromCamera(pointer, camera);
+				const intersectedObjects = raycaster.intersectObjects(meshes);
 
-	document.addEventListener("pointermove", onPointerMove);
-	document.addEventListener("mousedown", onMouseDown);
-	document.addEventListener("mouseup", onMouseUp);
-	document.addEventListener("keyup", onKeyUp);
-	document.addEventListener("keydown", onKeyDown);
-	document.addEventListener("dblclick", onDoubleClick);
+				if (intersectedObjects.length > 0) {
+					updateSelection(intersectedObjects[0].object);
+
+					initialiseGrabPoint();
+
+					orbitControl.enabled = false;
+					transitionTo(dragState);
+				} else {
+					transitionTo(orbitState);
+				}
+			},
+			onPointerMove(event) { },
+			onMouseUp(event) { },
+			onDoubleClick(event) {
+				if (currentSelection) {
+					transformControl.attach(currentSelection);
+					transformControl.setMode("translate");
+					transitionTo(transformState);
+				}
+			},
+		};
+	}
+
+	function createOrbitState() {
+		return {
+		name : "OrbitState",
+			onPointerMove(event) {
+				dragging = mouseDown;
+			},
+			onMouseDown(event) {
+				mouseDown = true;
+			},
+			onMouseUp(event) {
+				if (!dragging) {
+					transformControl.detach();
+					updateSelection(null);
+					transitionTo(baseState);
+				}
+			},
+			onDoubleClick(event) { },
+		};
+	}
+
+	function createDragState() {
+		return {
+		name : "DragState",
+			onPointerMove(event) {
+				//if (!mouseDown) return;
+
+				const newGrabPoint = new THREE.Vector3();
+				raycaster.setFromCamera(pointer, camera);
+				raycaster.ray.intersectPlane(plane, newGrabPoint);
+
+				const change = grabPoint.clone().sub(newGrabPoint);
+				currentSelection.position.sub(change);
+				grabPoint = newGrabPoint;
+
+				const objectMovedEvent = new CustomEvent("objectMoved", {
+					detail: { mesh: currentSelection },
+				});
+				dispatchEvent(objectMovedEvent);
+			},
+			onMouseDown(event) { },
+			onMouseUp(event) {
+				transitionTo(baseState);
+			},
+			onDoubleClick(event) {
+				transitionTo(transformState);
+			},
+		};
+	}
+
+	function createTransformState() {
+		let currSelection;
+		let selectionChanged = false;
+		return {
+		name : "TransformState",
+			onMouseDown(event) {
+				selectionChanged = false;
+				mouseDown = true;
+				// look for intersection
+				raycaster.setFromCamera(pointer, camera);
+				const intersectedObjects = raycaster.intersectObjects(meshes);
+
+				if (intersectedObjects.length > 0) {
+						orbitControl.enabled = false;
+					if (currentSelection !== intersectedObjects[0].object) {
+						selectionChanged = true;
+
+						updateSelection(intersectedObjects[0].object);
+
+						initialiseGrabPoint();
+
+						transitionTo(dragState);
+					}
+				} else {
+					if (!transformDragging) {
+						transitionTo(orbitState);
+					}
+				}
+			},
+			onPointerMove(event) {
+			},
+			onMouseUp(event) {
+				if (!transformDragging && selectionChanged) {
+					transformControl.detach();
+					transformControl.enabled = false;
+					transitionTo(orbitState);
+				}
+			},
+			onDoubleClick(event) {
+				if (currentSelection) {
+					transformControl.attach(currentSelection);
+					switch (transformControl.mode) {
+						case "translate":
+							transformControl.setMode("rotate");
+							break;
+						case "rotate":
+							transformControl.setMode("scale");
+							break;
+						case "scale":
+							transformControl.setMode("translate");
+							break;
+					}
+					transformControl.enabled = true;
+				}
+			},
+		};
+	}
 
 	return { setup };
-};
+}
 
-let userinteraction = MakeUserInteraction();
-
-export { userinteraction };
+const userInteraction = createUserInteraction();
+export { userInteraction };
