@@ -3,8 +3,6 @@ import { TransformControls } from "three/examples/jsm/controls/TransformControls
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { camera, renderer, scene, meshes } from "./controller.js";
 
-// Define the Interaction States
-// Define the Context
 function createUserInteraction() {
 	const pointer = new THREE.Vector2();
 	let shiftKey = false;
@@ -59,8 +57,9 @@ function createUserInteraction() {
 	}
 
 	function onTransformChange(event) {
+		const mesh = transformControl.object ? transformControl.object : currentSelection;
 		const objectMovedEvent = new CustomEvent("objectMoved", {
-			detail: { mesh: transformControl.object },
+			detail: { mesh },
 		});
 		dispatchEvent(objectMovedEvent);
 	}
@@ -96,14 +95,13 @@ function createUserInteraction() {
 
 	function onMouseUp(event) {
 		mouseDown = false;
-		//dragging = false;
 		orbitControl.enabled = true;
 		// console.log("Up", state.name);
 		state.onMouseUp(event);
 	}
 
 	function onDoubleClick(event) {
-		// console.log("Double Click", state.name);
+		 // console.log("Double Click", state.name);
 		state.onDoubleClick(event);
 	}
 
@@ -111,14 +109,13 @@ function createUserInteraction() {
 		if (currentSelection !== mesh) {
 			currentSelection = mesh;
 			const objectSelectedEvent = new CustomEvent("objectSelected", {
-				detail: { mesh: currentSelection },
+				detail: { mesh }
 			});
 			dispatchEvent(objectSelectedEvent);
-			if (transformControl.enabled) {
-				transformControl.enabled = false;
-				transformControl.detach();
-				transformControl.setMode("scale");
-			}
+
+			transformControl.enabled = false;
+			transformControl.detach();
+			transformControl.setMode("scale");
 		}
 	}
 
@@ -164,6 +161,7 @@ function createUserInteraction() {
 				if (currentSelection) {
 					transformControl.attach(currentSelection);
 					transformControl.setMode("translate");
+					transformControl.enabled = true;
 					transitionTo(transformState);
 				}
 			},
@@ -183,8 +181,8 @@ function createUserInteraction() {
 				if (!dragging) {
 					transformControl.detach();
 					updateSelection(null);
-					transitionTo(baseState);
 				}
+				transitionTo(baseState);
 			},
 			onDoubleClick(event) { },
 		};
@@ -194,8 +192,6 @@ function createUserInteraction() {
 		return {
 		name : "DragState",
 			onPointerMove(event) {
-				//if (!mouseDown) return;
-
 				const newGrabPoint = new THREE.Vector3();
 				raycaster.setFromCamera(pointer, camera);
 				raycaster.ray.intersectPlane(plane, newGrabPoint);
@@ -248,15 +244,8 @@ function createUserInteraction() {
 					}
 				}
 			},
-			onPointerMove(event) {
-			},
-			onMouseUp(event) {
-				if (!transformDragging && selectionChanged) {
-					transformControl.detach();
-					transformControl.enabled = false;
-					transitionTo(orbitState);
-				}
-			},
+			onPointerMove(event) { },
+			onMouseUp(event) { },
 			onDoubleClick(event) {
 				if (currentSelection) {
 					transformControl.attach(currentSelection);
@@ -269,6 +258,9 @@ function createUserInteraction() {
 							break;
 						case "scale":
 							transformControl.setMode("translate");
+							transformControl.detach();
+							transformControl.enabled = false;
+							transitionTo(baseState);
 							break;
 					}
 					transformControl.enabled = true;
