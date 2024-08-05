@@ -1,16 +1,9 @@
 import * as THREE from "three";
-import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
-import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
-import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
-import { OutlinePass } from "three/addons/postprocessing/OutlinePass.js";
-import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
-import { FXAAShader } from "three/addons/shaders/FXAAShader.js";
-
-//import { userInteraction } from "./user-interaction.js";
+import { MakeSelectionHighlighter } from "./highlightSelection.js";
 
 let camera, scene, renderer, composer, effectFXAA, outlinePass;
 let meshes = [];
-let curr;
+let selectionHighlighter;
 
 function setupCamera() {
   camera = new THREE.PerspectiveCamera(
@@ -46,6 +39,7 @@ function setupScene() {
   const light = new THREE.DirectionalLight(0xffffff, 3);
   light.position.set(-1, 2, 4);
   scene.add(light);
+
 }
 
 function setupRenderer() {
@@ -57,56 +51,15 @@ function setupRenderer() {
   document.body.appendChild(renderer.domElement);
 }
 
-function setupPostProcessing() {
-  composer = new EffectComposer(renderer);
-
-  const renderPass = new RenderPass(scene, camera);
-  composer.addPass(renderPass);
-
-  outlinePass = new OutlinePass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight),
-    scene,
-    camera
-  );
-  outlinePass.edgeStrength = 1;
-  outlinePass.edgeGlow = 4;
-  outlinePass.edgeThickness = 1;
-  composer.addPass(outlinePass);
-
-  effectFXAA = new ShaderPass(FXAAShader);
-  effectFXAA.uniforms["resolution"].value.set(
-    1 / window.innerWidth,
-    1 / window.innerHeight
-  );
-  composer.addPass(effectFXAA);
-
-  const outputPass = new OutputPass();
-  composer.addPass(outputPass);
-}
-
 function setup() {
-  addEventListener("objectSelected", updateSelection, false);
   // TODO don't set display = "none" here
   document.getElementById("1").style.display = "none";
 
   setupCamera();
   setupScene();
   setupRenderer();
-  // setupControls();
-  setupPostProcessing();
-  // setupEventListeners();
+  selectionHighlighter = MakeSelectionHighlighter(renderer, scene, camera);
 }
-
-function updateSelection(e) {
-  if (e.detail.mesh) {
-    if (curr !== e.detail.mesh) {
-      curr = e.detail.mesh;
-      outlinePass.selectedObjects = [curr];
-    }
-  } else {
-    curr = null;
-    outlinePass.selectedObjects = [];
-  }}
 
 function addMesh(response) {
   const material = new THREE.MeshBasicMaterial({
@@ -121,7 +74,7 @@ function addMesh(response) {
 
 function animation() {
   renderer.render(scene, camera);
-  if (composer) composer.render();
+  selectionHighlighter.render();
 }
 
 function onWindowResize() {
@@ -129,12 +82,7 @@ function onWindowResize() {
   camera.updateProjectionMatrix();
 
   renderer.setSize(window.innerWidth, window.innerHeight);
-  composer.setSize(window.innerWidth, window.innerHeight);
-
-  effectFXAA.uniforms["resolution"].value.set(
-    1 / window.innerWidth,
-    1 / window.innerHeight
-  );
+  selectionHighlighter.resize(window.innerWidth, window.innerHeight);
 }
 
 function debugShowPoint(pos) {
@@ -144,8 +92,6 @@ function debugShowPoint(pos) {
   mesh.position.set(...pos);
   scene.add(mesh);
 }
-
-// const infoDiv = document.getElementById("info");
 
 const controller = {
   setup,
