@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { OrbitControls } from "../three-custom/OrbitControl.js";
 import { camera, renderer, scene, meshes } from "./controller.js";
 
 function createUserInteraction() {
