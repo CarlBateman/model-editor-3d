@@ -73,7 +73,7 @@ function addMesh(response) {
 }
 
 function animation() {
-  renderer.render(scene, camera);
+  //renderer.render(scene, camera);
   selectionHighlighter.render();
 }
 
